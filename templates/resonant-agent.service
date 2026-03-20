@@ -1,0 +1,41 @@
+[Unit]
+Description=Resonant Autonomous Runtime Agent (RARA)
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=resonant-agent
+Group=resonant-agent
+
+WorkingDirectory=/opt/resonant/agent
+
+ExecStart=/opt/resonant/agent/bin/agent \
+  --runtime /opt/resonant/runtime \
+  --core /opt/resonant/core \
+  --snapshots /opt/resonant/snapshots
+
+Restart=always
+RestartSec=5
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+ReadWritePaths=/opt/resonant/runtime
+ReadWritePaths=/opt/resonant/snapshots
+ReadWritePaths=/opt/resonant/logs
+ReadWritePaths=/opt/resonant/state
+
+# Resource limits
+LimitNOFILE=65536
+MemoryMax=2G
+CPUQuota=200%
+
+[Install]
+WantedBy=multi-user.target

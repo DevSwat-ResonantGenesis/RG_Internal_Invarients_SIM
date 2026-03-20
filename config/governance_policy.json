@@ -1,0 +1,72 @@
+{
+  "version": "1.0.0",
+  "policy_name": "production_hardening",
+  "created": "2025-12-21",
+  "environment": "pre-production",
+  
+  "invariant_enforcement": {
+    "enabled": true,
+    "mode": "strict",
+    "fail_on_violation": true,
+    "graceful_skip_allowed": false,
+    "exceptions": {
+      "dev_mode_only": ["graceful_skip"],
+      "never_skip": ["structural_integrity", "security_boundaries"]
+    }
+  },
+  
+  "code_visualizer_requirements": {
+    "require_analysis_before_mutation": true,
+    "require_zero_broken_connections": false,
+    "max_allowed_broken_connections": 28,
+    "require_path_analyzability": true,
+    "excluded_from_analysis": [
+      "node_modules", "__pycache__", "dist", "build", "_drafts"
+    ]
+  },
+  
+  "mutation_controls": {
+    "require_snapshot_before_mutation": true,
+    "require_governance_approval": true,
+    "auto_rollback_on_invariant_failure": true,
+    "max_pending_mutations": 5,
+    "mutation_timeout_seconds": 300
+  },
+  
+  "stub_module_policy": {
+    "allow_stub_execution": true,
+    "log_stub_warnings": true,
+    "block_production_with_stubs": true,
+    "stub_registry_path": "/contracts/stub_modules.json"
+  },
+  
+  "kill_switch": {
+    "enabled": true,
+    "auto_trigger_conditions": [
+      "invariant_violation_count > 3",
+      "mutation_failure_rate > 0.5",
+      "security_boundary_breach"
+    ],
+    "require_human_reset": true
+  },
+  
+  "compliance": {
+    "profile": "minimal",
+    "audit_all_mutations": true,
+    "retain_audit_logs_days": 90
+  },
+  
+  "hash_sphere_integration": {
+    "record_all_state_changes": true,
+    "require_hash_verification": true,
+    "snapshot_on_milestone": true
+  },
+  
+  "notes": [
+    "This policy enforces strict governance for pre-production hardening",
+    "Invariant failures will block mutations (no graceful bypass)",
+    "All mutations require prior Code Visualizer analysis",
+    "Stub modules are allowed but logged - must be hardened before production",
+    "Kill switch will auto-trigger on repeated failures"
+  ]
+}

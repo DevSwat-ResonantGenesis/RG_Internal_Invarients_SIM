@@ -1,0 +1,27 @@
+# Standalone docker-compose snippet for RG Internal Invariants SIM (RARA)
+# Merge into main docker-compose.unified.yml or use standalone
+
+services:
+  rg_internal_invarients_sim:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rg_internal_invarients_sim
+    env_file:
+      - .env.production
+    environment:
+      REDIS_URL: redis://shared_redis:6379/0
+      AST_ANALYSIS_SERVICE_URL: http://rg_ast_analysis:8000
+      HASH_SPHERE_URL: http://rg_users_invarients_sim:8091
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8093/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  app-network:
+    external: true

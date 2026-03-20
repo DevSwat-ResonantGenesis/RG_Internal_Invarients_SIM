@@ -1,0 +1,46 @@
+# RARA Capability Configuration
+# This file is READ-ONLY to the agent
+
+capabilities:
+  filesystem:
+    - create_file
+    - update_file
+    - delete_file
+    - move_file
+
+  services:
+    - restart_service
+    - reload_config
+
+  routing:
+    - add_route
+    - update_route
+    - remove_route
+
+  workflows:
+    - register_workflow
+    - update_workflow
+    - disable_workflow
+
+constraints:
+  forbidden_paths:
+    - /opt/resonant/core
+    - /opt/resonant/agent
+    - /etc
+    - /usr
+    - /bin
+    - /sbin
+    - /var/log
+    - /root
+
+  max_files_per_mutation: 25
+  max_bytes_per_mutation: 5242880  # 5MB
+
+trust_thresholds:
+  requires_approval: 0.7
+  disabled: 0.5
+  revoked: 0.3
+
+budget:
+  daily_limit: 10.0
+  reset_hour: 0  # UTC

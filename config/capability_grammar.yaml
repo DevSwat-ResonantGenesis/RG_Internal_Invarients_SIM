@@ -1,0 +1,318 @@
+# ============================================================================
+# CAPABILITY GRAMMAR v1.0.0
+# ============================================================================
+# This schema defines what mutations are allowed, not just whether they pass.
+# Enforced by RARA. Visible in Code Visualizer governance view.
+# 
+# STATUS: ACTIVE
+# CREATED: 2025-12-21
+# BASELINE: snap-0005 (hash: 8cdca8f481173dd6)
+# ============================================================================
+
+version: "1.0.0"
+schema_version: "2025-12-21"
+environment: "pre-production"
+
+# ============================================================================
+# GLOBAL CONSTRAINTS
+# ============================================================================
+global:
+  require_snapshot_before_mutation: true
+  require_invariant_pass: true
+  require_governance_approval: true
+  max_mutation_depth: 3
+  timeout_seconds: 300
+  
+  # Confidence thresholds
+  confidence:
+    minimum: 0.7
+    high_risk_minimum: 0.9
+    
+  # Audit requirements
+  audit:
+    log_all_mutations: true
+    log_denials: true
+    retention_days: 90
+
+# ============================================================================
+# CAPABILITY DEFINITIONS
+# ============================================================================
+capabilities:
+
+  # --------------------------------------------------------------------------
+  # FILESYSTEM CAPABILITIES
+  # --------------------------------------------------------------------------
+  filesystem.read:
+    description: "Read files from filesystem"
+    risk_level: low
+    allowed_paths:
+      - "/opt/resonant/work/**"
+      - "/opt/resonant/runtime/**"
+      - "/opt/resonant/state/**"
+    denied_paths:
+      - "/opt/resonant/core/**"
+      - "/etc/**"
+      - "/root/**"
+    requires:
+      - invariant_pass
+    
+  filesystem.write:
+    description: "Write files to filesystem"
+    risk_level: medium
+    allowed_paths:
+      - "/opt/resonant/work/**"
+      - "/opt/resonant/state/**"
+    denied_paths:
+      - "/opt/resonant/core/**"
+      - "/opt/resonant/runtime/**"
+      - "/etc/**"
+    requires:
+      - snapshot
+      - invariant_pass
+      - confidence >= 0.7
+      
+  filesystem.create:
+    description: "Create new files"
+    risk_level: medium
+    allowed_paths:
+      - "/opt/resonant/work/**"
+    denied_paths:
+      - "/opt/resonant/core/**"
+      - "/opt/resonant/runtime/**"
+    requires:
+      - snapshot
+      - invariant_pass
+      - confidence >= 0.7
+      
+  filesystem.delete:
+    description: "Delete files"
+    risk_level: high
+    allowed_paths:
+      - "/opt/resonant/work/tmp/**"
+    denied_paths:
+      - "/opt/resonant/core/**"
+      - "/opt/resonant/runtime/**"
+      - "/opt/resonant/snapshots/**"
+    requires:
+      - snapshot
+      - invariant_pass
+      - confidence >= 0.9
+      - governance_approval
+
+  # --------------------------------------------------------------------------
+  # CODE MUTATION CAPABILITIES
+  # --------------------------------------------------------------------------
+  code.analyze:
+    description: "Analyze code structure via Code Visualizer"
+    risk_level: low
+    requires:
+      - invariant_pass
+      
+  code.mutate:
+    description: "Modify existing code"
+    risk_level: high
+    allowed_services:
+      - "agent_engine_service"
+      - "chat_service"
+      - "memory_service"
+    denied_services:
+      - "rara_service"
+      - "auth_service"
+      - "gateway"
+    requires:
+      - snapshot
+      - code_visualizer_analysis
+      - invariant_pass
+      - confidence >= 0.9
+      - governance_approval
+    constraints:
+      max_lines_changed: 100
+      require_test_coverage: true
+      
+  code.generate:
+    description: "Generate new code"
+    risk_level: high
+    allowed_paths:
+      - "/opt/resonant/work/**"
+    requires:
+      - snapshot
+      - invariant_pass
+      - confidence >= 0.8
+
+  # --------------------------------------------------------------------------
+  # AGENT CAPABILITIES
+  # --------------------------------------------------------------------------
+  agent.spawn:
+    description: "Create new agent instance"
+    risk_level: medium
+    requires:
+      - invariant_pass
+      - confidence >= 0.7
+    constraints:
+      max_concurrent_agents: 10
+      require_capability_bounds: true
+      
+  agent.terminate:
+    description: "Terminate agent instance"
+    risk_level: medium
+    requires:
+      - invariant_pass
+    constraints:
+      require_graceful_shutdown: true
+      
+  agent.delegate:
+    description: "Delegate task to another agent"
+    risk_level: medium
+    requires:
+      - invariant_pass
+      - confidence >= 0.7
+    constraints:
+      max_delegation_depth: 3
+      require_capability_check: true
+
+  # --------------------------------------------------------------------------
+  # NETWORK CAPABILITIES
+  # --------------------------------------------------------------------------
+  network.internal_call:
+    description: "Call internal service endpoints"
+    risk_level: low
+    allowed_services:
+      - "hash_sphere_service"
+      - "code_visualizer_service"
+      - "memory_service"
+      - "llm_service"
+    requires:
+      - invariant_pass
+      
+  network.external_call:
+    description: "Call external APIs"
+    risk_level: high
+    allowed_domains:
+      - "api.openai.com"
+      - "api.anthropic.com"
+      - "api.groq.com"
+    denied_domains:
+      - "*"  # Deny all except allowed
+    requires:
+      - invariant_pass
+      - confidence >= 0.8
+      - rate_limit_check
+
+  # --------------------------------------------------------------------------
+  # DATA CAPABILITIES
+  # --------------------------------------------------------------------------
+  data.read:
+    description: "Read from database"
+    risk_level: low
+    requires:
+      - invariant_pass
+      
+  data.write:
+    description: "Write to database"
+    risk_level: medium
+    requires:
+      - snapshot
+      - invariant_pass
+      - confidence >= 0.7
+      
+  data.delete:
+    description: "Delete from database"
+    risk_level: high
+    requires:
+      - snapshot
+      - invariant_pass
+      - confidence >= 0.9
+      - governance_approval
+
+  # --------------------------------------------------------------------------
+  # GOVERNANCE CAPABILITIES
+  # --------------------------------------------------------------------------
+  governance.snapshot:
+    description: "Create system snapshot"
+    risk_level: low
+    requires:
+      - invariant_pass
+      
+  governance.rollback:
+    description: "Rollback to previous snapshot"
+    risk_level: critical
+    requires:
+      - governance_approval
+      - human_confirmation
+      
+  governance.policy_update:
+    description: "Update governance policy"
+    risk_level: critical
+    requires:
+      - governance_approval
+      - human_confirmation
+      - dual_approval
+
+# ============================================================================
+# STUB MODULE CAPABILITIES (RESTRICTED)
+# ============================================================================
+stub_modules:
+  description: "Capabilities for modules marked as stubs"
+  policy: "warn_and_log"
+  
+  allowed_operations:
+    - "return_placeholder_data"
+    - "log_governance_warning"
+    
+  denied_operations:
+    - "modify_state"
+    - "call_external_services"
+    - "spawn_agents"
+    - "execute_code"
+    
+  graduation_criteria:
+    - "implementation_complete"
+    - "tests_passing"
+    - "invariants_defined"
+    - "_IS_STUB = False"
+    - "governance_review_passed"
+
+# ============================================================================
+# RISK LEVELS
+# ============================================================================
+risk_levels:
+  low:
+    confidence_minimum: 0.5
+    require_snapshot: false
+    require_approval: false
+    
+  medium:
+    confidence_minimum: 0.7
+    require_snapshot: true
+    require_approval: false
+    
+  high:
+    confidence_minimum: 0.9
+    require_snapshot: true
+    require_approval: true
+    
+  critical:
+    confidence_minimum: 0.95
+    require_snapshot: true
+    require_approval: true
+    require_human: true
+
+# ============================================================================
+# ENVIRONMENT OVERRIDES
+# ============================================================================
+environments:
+  dev:
+    graceful_skip_allowed: true
+    confidence_minimum_override: 0.5
+    governance_approval_required: false
+    
+  staging:
+    graceful_skip_allowed: false
+    confidence_minimum_override: 0.7
+    governance_approval_required: true
+    
+  production:
+    graceful_skip_allowed: false
+    confidence_minimum_override: 0.9
+    governance_approval_required: true
+    require_dual_approval_for_critical: true

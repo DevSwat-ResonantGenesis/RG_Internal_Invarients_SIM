@@ -1,0 +1,37 @@
+# RARA Compliance Profiles
+
+profiles:
+  minimal:
+    logging: optional
+    human_approval: optional
+    explainability: optional
+    self_modification: forbidden
+    audit_trail: optional
+
+  eu_ai_act:
+    logging: mandatory
+    human_approval: required_for_high_risk
+    explainability: required
+    self_modification: forbidden
+    audit_trail: mandatory
+    high_risk_actions:
+      - filesystem.delete_file
+      - services.restart_service
+      - routing.remove_route
+      - workflows.disable_workflow
+
+  soc2:
+    logging: mandatory
+    human_approval: required_for_high_risk
+    explainability: optional
+    self_modification: forbidden
+    audit_trail: immutable
+    access_control: strict
+    change_management: enforced
+    rollback_required: true
+
+governance_rules:
+  confidence_threshold: 0.6
+  max_blast_radius: 2
+  core_modification: forbidden
+  repeated_failure_throttle: true

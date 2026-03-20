@@ -1,0 +1,9 @@
+# Sudoers configuration for resonant-agent
+# VERY LIMITED - only service restarts allowed
+
+resonant-agent ALL=(root) NOPASSWD: \
+  /usr/bin/docker-compose restart *, \
+  /usr/bin/systemctl restart resonant-*
+
+# No shell, no rm, no apt, no chmod
+# Nothing else allowed
