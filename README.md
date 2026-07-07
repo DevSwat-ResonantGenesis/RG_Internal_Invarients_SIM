@@ -1,6 +1,6 @@
 # RG Internal Invariants SIM (RARA)
 
-> **Part of the [ResonantGenesis](https://dev-swat.com) platform** — internal platform governance service (Resident Autonomous Runtime Agent).
+> **Part of the [ResonantGenesis](https://resonant.dev-swat.com) platform** — internal platform governance service (Resident Autonomous Runtime Agent).
 
 [![Status: Production](https://img.shields.io/badge/Status-Production-brightgreen.svg)]()
 [![Docker: rg_internal_invarients_sim](https://img.shields.io/badge/Docker-rg__internal__invarients__sim-blue.svg)]()
@@ -116,4 +116,4 @@ The gateway proxies RARA requests to this standalone service:
 ---
 
 **Organization**: [DevSwat-ResonantGenesis](https://github.com/DevSwat-ResonantGenesis)
-**Platform**: [dev-swat.com](https://dev-swat.com)
+**Platform**: [resonant.dev-swat.com](https://resonant.dev-swat.com)
